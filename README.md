@@ -5,16 +5,25 @@ This library will help out in case you are using Robot framework and trying to i
 All you have to do is just to add the jwt lib to your settings 
 
 # Features
-As per my refrence https://github.com/mBouamama/MyJWT , belw are the list of the Keyword that are included in the Library 
+As per my refrence https://myjwt.readthedocs.io/en/latest/examples.html#modify-your-jwt  , belw are the list of the Keyword that are included in the Library 
 
-- Copy new jwt to clipboard
-- Modify jwt (header/Payload)
-- None Vulnerability
-- Sign a jwt with key
-- Brute Force to guess key
-- Crack jwt with regex to guess key
-- kid injection
-- Jku Bypass
-- X5u Bypass
+
+- Modify Your jwt
+
+- None Vulnerabilty Check
+
+- Sign Key
+
+- Brute Force Signature
+
+- RSA/HMAC Confusion
+
+- Kid Injection
+
+- Send your new Jwt to url
+
+- Jku Vulnerability
+
+- X5u Vulnerability
 
 
