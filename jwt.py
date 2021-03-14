@@ -1,6 +1,3 @@
-import sys
-import os
-
 import subprocess
 
 def modify_your_JWT ( jwt ):
