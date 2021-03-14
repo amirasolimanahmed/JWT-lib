@@ -3,16 +3,6 @@ import os
 
 import subprocess
 
-# # implement pip as a subprocess:
-# subprocess.check_call([sys.executable, '-m', 'pip', 'install','myjwt'])
-#
-# # process output with an API in the subprocess module:
-# reqs = subprocess.check_output([sys.executable, '-m', 'pip',
-#                                 'myjwt'])
-# installed_packages = [r.decode().split('==')[0] for r in reqs.split()]
-#
-# print(installed_packages)
-
 def modify_your_JWT ( jwt ):
      print(jwt)
      new_jwt = subprocess.run(["myjwt", jwt, "--add-payload" , "username=admin", "--add-header", "refresh=false"])
