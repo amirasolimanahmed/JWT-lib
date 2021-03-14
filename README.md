@@ -8,8 +8,7 @@ All you have to do is adding the jwt lib to your robot framework settings so you
 
 
 # Features
-As per   https://myjwt.readthedocs.io/en/latest/examples.html#modify-your-jwt  , belw are the list of the Keyword that are included in the jwt Library 
-
+Below  are the list of the Keyword that are included in the jwt Library 
 
 - Modify Your jwt
 
@@ -34,5 +33,8 @@ As per   https://myjwt.readthedocs.io/en/latest/examples.html#modify-your-jwt  ,
 
 - you have to install myjwt 
 
-      #### pip install myjwt
+       pip install myjwt
 
+# Refrences 
+- https://myjwt.readthedocs.io/en/latest/
+- https://github.com/mBouamama/MyJWT
