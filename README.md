@@ -42,7 +42,7 @@ Below  are the list of the Keyword that are included in the jwt Library
 - X5u Vulnerability
 
 
-# prerequisite 
+# Prerequisites 
 
 - you have to install myjwt 
 
