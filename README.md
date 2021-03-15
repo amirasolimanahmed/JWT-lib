@@ -58,7 +58,7 @@ Below  are the list of the Keyword that are included in the jwt Library
 
        pip install myjwt
        
-For more details on how to use each keywork please check  https://myjwt.readthedocs.io/en/latest/examples.html#modify-your-jwt 
+For more details on how to use each keywork please check  [https://myjwt.readthedocs.io/en/latest/examples.html#modify-your-jwt] 
 
 # Refrences 
 - https://myjwt.readthedocs.io/en/latest/
