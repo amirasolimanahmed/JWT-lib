@@ -20,6 +20,8 @@ This is the most common scenario for using JWT. Once the user is logged in, each
 ### Information Exchange
 JSON Web Tokens are a good way of securely transmitting information between parties. Because JWTs can be signed—for example, using public/private key pairs—you can be sure the senders are who they say they are. Additionally, as the signature is calculated using the header and the payload, you can also verify that the content hasn't been tampered with.
 
+For more details please check [https://jwt.io/introduction]
+
 # About the JWT Library
 This python library will help out in case you are planning to inject some JWT security checks in your automation scripts using Robot Framework.
 
