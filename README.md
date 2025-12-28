@@ -4,23 +4,31 @@
 
 ## Overview
 
-This repository provides a **Python-based JWT security testing library** designed to be used with **Robot Framework**.
-It enables security testers, QA engineers, and DevSecOps teams to **validate JSON Web Token (JWT) implementations against real-world attack scenarios**, aligned with **OWASP API Security Top 10** and **ISO/IEC 27001:2022**.
+This repository provides a **Python-based JWT security testing library** designed for use with **Robot Framework**.
+It enables **Security Testers, QA Engineers, and DevSecOps teams** to validate **JSON Web Token (JWT)** implementations against **real-world attack scenarios**.
 
-The library leverages **MyJWT** to automate common JWT vulnerability checks without relying on CLI execution, making it suitable for **CI/CD pipelines** and **BDD-style security testing**.
+The library supports:
+
+* **Automated JWT security testing**
+* **OWASP API Security Top 10 alignment**
+* **ISO/IEC 27001:2022 Annex A mapping**
+* **CI/CD & shift-left security**
+* **BDD-friendly Robot Framework tests**
+
+The implementation wraps **MyJWT** functionality in a **safe, reusable, and test-friendly way**, avoiding direct CLI usage in test cases.
 
 ---
 
 ## 📘 Introduction to JSON Web Tokens
 
-A **JSON Web Token (JWT)** is an open standard (RFC 7519) that defines a compact, self-contained mechanism for securely transmitting information between parties as a JSON object. JWTs are digitally signed, ensuring authenticity and integrity.
+A **JSON Web Token (JWT)** is an open standard (RFC 7519) that defines a compact and self-contained mechanism for securely transmitting information between parties as a JSON object.
 
-JWTs can be signed using:
+JWTs are digitally signed to ensure **authenticity** and **integrity**, using:
 
 * A shared secret (**HMAC**), or
 * A public/private key pair (**RSA** or **ECDSA**)
 
-More details: [https://jwt.io/introduction](https://jwt.io/introduction)
+📖 More details: [https://jwt.io/introduction](https://jwt.io/introduction)
 
 ---
 
@@ -38,11 +46,12 @@ A JWT consists of three Base64URL-encoded parts separated by dots (`.`):
 
 ### Authorization
 
-JWTs are commonly used for stateless authentication and authorization. Once issued, the token is sent with every request to protected endpoints, enabling scalable and decoupled security.
+JWTs are commonly used for **stateless authentication and authorization**.
+Once issued, the token is sent with each request to protected endpoints, enabling scalable and decoupled security.
 
 ### Secure Information Exchange
 
-JWTs ensure that transmitted claims are verifiable and tamper-proof through cryptographic signatures.
+JWTs ensure transmitted claims are **verifiable and tamper-proof** through cryptographic signatures.
 
 ---
 
@@ -52,10 +61,10 @@ This library exposes **Robot Framework keywords** that automate JWT security tes
 
 * JWT modification and re-signing
 * `none` algorithm abuse
-* Weak secret brute forcing
-* RSA/HMAC algorithm confusion
+* Weak HMAC secret brute forcing
+* RSA / HMAC algorithm confusion
 * `kid` header injection
-* `jku` and `x5u` URL-based key injection
+* `jku` and `x5u` remote key injection
 * Sending modified JWTs to target endpoints
 
 ---
@@ -65,65 +74,114 @@ This library exposes **Robot Framework keywords** that automate JWT security tes
 ### Prerequisites
 
 ```bash
+pip install robotframework
 pip install myjwt
+```
+
+---
+
+## 🗂️ Recommended Project Structure
+
+```
+jwt-security-tests/
+│
+├── libraries/
+│   └── jwt.py                  # Refactored Python JWT library
+│
+├── resources/
+│   └── jwt_keywords.robot      # Reusable Robot keywords
+│
+├── tests/
+│   ├── jwt_none_algorithm.robot
+│   ├── jwt_kid_injection.robot
+│   └── jwt_rsa_hmac.robot
+│
+├── data/
+│   ├── valid_jwt.txt
+│   └── rsa_public.pem
+│
+└── reports/
+    ├── report.html
+    ├── log.html
+    └── output.xml
 ```
 
 ---
 
 ## ⚙️ Robot Framework Setup
 
-Add the JWT library to your Robot Framework test suite:
+Add the JWT Python library to your test suite:
 
 ```robot
 *** Settings ***
-Library    ../Libraries/jwt.py
+Library    ../libraries/jwt.py
+Resource   ../resources/jwt_keywords.robot
+```
+
+---
+
+## 🧩 Robot Resource Keywords
+
+### `resources/jwt_keywords.robot`
+
+```robot
+*** Keywords ***
+Load JWT From File
+    [Arguments]    ${path}
+    ${jwt}=    Get File    ${path}
+    ${jwt}=    Strip String    ${jwt}
+    [Return]    ${jwt}
+
+JWT Should Be Rejected
+    [Arguments]    ${result}
+    Should Not Be Equal As Integers    ${result.returncode}    0
 ```
 
 ---
 
 ## 🤖 Robot Framework Example Test Cases
 
-### 1️⃣ None Algorithm Vulnerability Test
+### 1️⃣ None Algorithm Vulnerability
 
 **OWASP API2 – Broken Authentication**
 
 ```robot
 *** Test Cases ***
-JWT None Algorithm Attack
-    ${jwt}=    Load Original JWT    valid_jwt.txt
-    ${modified}=    Modify JWT Algorithm    ${jwt}    none
-    ${response}=    Send JWT To URL    ${modified}    https://api.example.com/protected
-    Should Be Equal As Integers    ${response.status_code}    401
+JWT None Algorithm Must Be Rejected
+    [Tags]    OWASP_API2    JWT
+    ${jwt}=        Load JWT From File    ../data/valid_jwt.txt
+    ${result}=     None Vulnerability    ${jwt}
+    JWT Should Be Rejected               ${result}
 ```
 
 ---
 
-### 2️⃣ RSA / HMAC Confusion Attack
+### 2️⃣ RSA / HMAC Confusion
 
 **OWASP API2 – Broken Authentication**
 
 ```robot
 *** Test Cases ***
-JWT RSA HMAC Confusion
-    ${jwt}=    Load Original JWT    rsa_signed_jwt.txt
-    ${modified}=    Perform RSA HMAC Confusion    ${jwt}    public.pem
-    ${response}=    Send JWT To URL    ${modified}    https://api.example.com/protected
-    Should Be Equal As Integers    ${response.status_code}    401
+JWT RSA HMAC Confusion Attack
+    [Tags]    OWASP_API2    JWT
+    ${jwt}=        Load JWT From File    ../data/valid_jwt.txt
+    ${result}=     Rsa Hmac Confusion    ${jwt}    ../data/rsa_public.pem
+    JWT Should Be Rejected               ${result}
 ```
 
 ---
 
-### 3️⃣ `kid` Injection Attack
+### 3️⃣ `kid` Injection
 
 **OWASP API8 – Security Misconfiguration**
 
 ```robot
 *** Test Cases ***
-JWT KID Injection
-    ${jwt}=    Load Original JWT    valid_jwt.txt
-    ${modified}=    Inject KID Header    ${jwt}    ../../../../etc/passwd
-    ${response}=    Send JWT To URL    ${modified}    https://api.example.com/protected
-    Should Not Be Equal As Integers    ${response.status_code}    200
+JWT KID Injection Attack
+    [Tags]    OWASP_API8    JWT
+    ${jwt}=        Load JWT From File    ../data/valid_jwt.txt
+    ${result}=     Kid Injection         ${jwt}
+    JWT Should Be Rejected               ${result}
 ```
 
 ---
@@ -144,14 +202,14 @@ JWT KID Injection
 
 ## 🧩 ISO/IEC 27001:2022 Mapping
 
-| JWT Risk                             | ISO Control                                 |
-| ------------------------------------ | ------------------------------------------- |
-| Weak token signing                   | A.8.24 – Cryptographic controls             |
-| Broken authentication                | A.5.17 – Authentication information         |
-| Token tampering                      | A.8.21 – Secure system architecture         |
-| Misconfigured JWT validation         | A.8.20 – Network security                   |
-| Untrusted key sources (`jku`, `x5u`) | A.5.23 – Information security for suppliers |
-| Missing monitoring                   | A.8.16 – Monitoring activities              |
+| JWT Risk                             | ISO/IEC 27001:2022 Control          |
+| ------------------------------------ | ----------------------------------- |
+| Weak token signing                   | A.8.24 – Cryptographic controls     |
+| Broken authentication                | A.5.17 – Authentication information |
+| Token tampering                      | A.8.21 – Secure system architecture |
+| Misconfigured JWT validation         | A.8.20 – Network security           |
+| Untrusted key sources (`jku`, `x5u`) | A.5.23 – Supplier relationships     |
+| Missing monitoring                   | A.8.16 – Monitoring activities      |
 
 ---
 
@@ -160,10 +218,16 @@ JWT KID Injection
 This library is ideal for:
 
 * Security regression testing
-* API pipeline security gates
-* BDD-based security testing
+* API security gates in CI/CD pipelines
+* Shift-left security testing
 * OWASP & ISO compliance evidence
-* Shift-left security strategies
+* BDD-style security automation
+
+Run all tests:
+
+```bash
+robot -d reports tests/
+```
 
 ---
 
@@ -173,8 +237,4 @@ This library is ideal for:
 * MyJWT GitHub: [https://github.com/mBouamama/MyJWT](https://github.com/mBouamama/MyJWT)
 * JWT Introduction: [https://jwt.io/](https://jwt.io/)
 * OWASP API Security Top 10: [https://owasp.org/www-project-api-security/](https://owasp.org/www-project-api-security/)
-
-
-
-Stay tuned 🚀
 
