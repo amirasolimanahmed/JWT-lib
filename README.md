@@ -1,66 +1,180 @@
 
-## Introduction to JSON Web Tokens
 
-JSON Web Token (JWT) is an open standard (RFC 7519) that defines a compact and self-contained way for securely transmitting information between parties as a JSON object. This information can be verified and trusted because it is digitally signed. JWTs can be signed using a secret (with the HMAC algorithm) or a public/private key pair using RSA or ECDSA.
+# 🔐 JWT Security Testing Library for Robot Framework
 
-## What is the JSON Web Token structure?
-In its compact form, JSON Web Tokens consist of three parts separated by dots (.), which are:
+## Overview
 
-- Header
-- Payload
-- Signature
+This repository provides a **Python-based JWT security testing library** designed to be used with **Robot Framework**.
+It enables security testers, QA engineers, and DevSecOps teams to **validate JSON Web Token (JWT) implementations against real-world attack scenarios**, aligned with **OWASP API Security Top 10** and **ISO/IEC 27001:2022**.
 
-## When should you use JSON Web Tokens?
+The library leverages **MyJWT** to automate common JWT vulnerability checks without relying on CLI execution, making it suitable for **CI/CD pipelines** and **BDD-style security testing**.
 
-Here are some scenarios where JSON Web Tokens are useful:
+---
+
+## 📘 Introduction to JSON Web Tokens
+
+A **JSON Web Token (JWT)** is an open standard (RFC 7519) that defines a compact, self-contained mechanism for securely transmitting information between parties as a JSON object. JWTs are digitally signed, ensuring authenticity and integrity.
+
+JWTs can be signed using:
+
+* A shared secret (**HMAC**), or
+* A public/private key pair (**RSA** or **ECDSA**)
+
+More details: [https://jwt.io/introduction](https://jwt.io/introduction)
+
+---
+
+## 🧱 JWT Structure
+
+A JWT consists of three Base64URL-encoded parts separated by dots (`.`):
+
+1. **Header** – Token type and signing algorithm
+2. **Payload** – Claims (identity, roles, permissions, metadata)
+3. **Signature** – Integrity and authenticity protection
+
+---
+
+## 🎯 When to Use JWTs
 
 ### Authorization
-This is the most common scenario for using JWT. Once the user is logged in, each subsequent request will include the JWT, allowing the user to access routes, services, and resources that are permitted with that token. Single Sign On is a feature that widely uses JWT nowadays, because of its small overhead and its ability to be easily used across different domains.
 
-### Information Exchange
-JSON Web Tokens are a good way of securely transmitting information between parties. Because JWTs can be signed—for example, using public/private key pairs—you can be sure the senders are who they say they are. Additionally, as the signature is calculated using the header and the payload, you can also verify that the content hasn't been tampered with.
+JWTs are commonly used for stateless authentication and authorization. Once issued, the token is sent with every request to protected endpoints, enabling scalable and decoupled security.
 
-For more details please check [https://jwt.io/introduction]
+### Secure Information Exchange
 
-# About the JWT Library
-This python library will help out in case you are planning to inject some JWT security checks in your automation scripts using Robot Framework.
+JWTs ensure that transmitted claims are verifiable and tamper-proof through cryptographic signatures.
 
-All you have to do [After you have Robot framework environment is ready] is adding the jwt lib to your robot framework settings so you can use the keywords instead of using the CLI to run the jwt commands.
+---
 
-    ### Library     ../Libraries/jwt.py
+## 🧪 Library Capabilities
+
+This library exposes **Robot Framework keywords** that automate JWT security testing scenarios, including:
+
+* JWT modification and re-signing
+* `none` algorithm abuse
+* Weak secret brute forcing
+* RSA/HMAC algorithm confusion
+* `kid` header injection
+* `jku` and `x5u` URL-based key injection
+* Sending modified JWTs to target endpoints
+
+---
+
+## 📦 Installation
+
+### Prerequisites
+
+```bash
+pip install myjwt
+```
+
+---
+
+## ⚙️ Robot Framework Setup
+
+Add the JWT library to your Robot Framework test suite:
+
+```robot
+*** Settings ***
+Library    ../Libraries/jwt.py
+```
+
+---
+
+## 🤖 Robot Framework Example Test Cases
+
+### 1️⃣ None Algorithm Vulnerability Test
+
+**OWASP API2 – Broken Authentication**
+
+```robot
+*** Test Cases ***
+JWT None Algorithm Attack
+    ${jwt}=    Load Original JWT    valid_jwt.txt
+    ${modified}=    Modify JWT Algorithm    ${jwt}    none
+    ${response}=    Send JWT To URL    ${modified}    https://api.example.com/protected
+    Should Be Equal As Integers    ${response.status_code}    401
+```
+
+---
+
+### 2️⃣ RSA / HMAC Confusion Attack
+
+**OWASP API2 – Broken Authentication**
+
+```robot
+*** Test Cases ***
+JWT RSA HMAC Confusion
+    ${jwt}=    Load Original JWT    rsa_signed_jwt.txt
+    ${modified}=    Perform RSA HMAC Confusion    ${jwt}    public.pem
+    ${response}=    Send JWT To URL    ${modified}    https://api.example.com/protected
+    Should Be Equal As Integers    ${response.status_code}    401
+```
+
+---
+
+### 3️⃣ `kid` Injection Attack
+
+**OWASP API8 – Security Misconfiguration**
+
+```robot
+*** Test Cases ***
+JWT KID Injection
+    ${jwt}=    Load Original JWT    valid_jwt.txt
+    ${modified}=    Inject KID Header    ${jwt}    ../../../../etc/passwd
+    ${response}=    Send JWT To URL    ${modified}    https://api.example.com/protected
+    Should Not Be Equal As Integers    ${response.status_code}    200
+```
+
+---
+
+## 🔗 OWASP API Security Top 10 Mapping
+
+| JWT Vulnerability            | OWASP API Risk                             |
+| ---------------------------- | ------------------------------------------ |
+| `none` algorithm             | API2 – Broken Authentication               |
+| Weak HMAC secrets            | API2 – Broken Authentication               |
+| RSA/HMAC confusion           | API2 – Broken Authentication               |
+| Missing signature validation | API2 – Broken Authentication               |
+| `kid` injection              | API8 – Security Misconfiguration           |
+| `jku` / `x5u` abuse          | API8 – Security Misconfiguration           |
+| Unvalidated claims           | API5 – Broken Function Level Authorization |
+
+---
+
+## 🧩 ISO/IEC 27001:2022 Mapping
+
+| JWT Risk                             | ISO Control                                 |
+| ------------------------------------ | ------------------------------------------- |
+| Weak token signing                   | A.8.24 – Cryptographic controls             |
+| Broken authentication                | A.5.17 – Authentication information         |
+| Token tampering                      | A.8.21 – Secure system architecture         |
+| Misconfigured JWT validation         | A.8.20 – Network security                   |
+| Untrusted key sources (`jku`, `x5u`) | A.5.23 – Information security for suppliers |
+| Missing monitoring                   | A.8.16 – Monitoring activities              |
+
+---
+
+## 🚀 CI/CD & DevSecOps Usage
+
+This library is ideal for:
+
+* Security regression testing
+* API pipeline security gates
+* BDD-based security testing
+* OWASP & ISO compliance evidence
+* Shift-left security strategies
+
+---
+
+## 📚 References
+
+* MyJWT Documentation: [https://myjwt.readthedocs.io/en/latest/](https://myjwt.readthedocs.io/en/latest/)
+* MyJWT GitHub: [https://github.com/mBouamama/MyJWT](https://github.com/mBouamama/MyJWT)
+* JWT Introduction: [https://jwt.io/](https://jwt.io/)
+* OWASP API Security Top 10: [https://owasp.org/www-project-api-security/](https://owasp.org/www-project-api-security/)
 
 
-# Features
-Below  are the list of the Keyword that are included in the jwt Library 
 
-- Modify Your jwt
+Stay tuned 🚀
 
-- None Vulnerabilty Check
-
-- Sign Key
-
-- Brute Force Signature
-
-- RSA/HMAC Confusion
-
-- Kid Injection
-
-- Send your new Jwt to url
-
-- Jku Vulnerability
-
-- X5u Vulnerability
-
-
-# Prerequisites 
-
-- you have to install myjwt 
-
-       pip install myjwt
-       
-For more details on how to use each keyword please check  [https://myjwt.readthedocs.io/en/latest/examples.html#modify-your-jwt] 
-
-# Refrences 
-- https://myjwt.readthedocs.io/en/latest/
-- https://github.com/mBouamama/MyJWT
-- https://jwt.io/
